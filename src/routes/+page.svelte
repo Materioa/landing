@@ -4,13 +4,10 @@
 	import { HugeiconsIcon } from "@hugeicons/svelte";
 	import {
 		ArrowRight01Icon,
-		Mail01Icon,
 		Compass01Icon,
 		Shield01Icon,
 		SparklesIcon,
-		Layers01Icon,
 		GlobeIcon,
-		ArrowDown01Icon,
 		Menu01Icon,
 		Cancel01Icon,
 	} from "@hugeicons/core-free-icons";
@@ -37,28 +34,40 @@
 			: scrollY > 800,
 	);
 
-	let email = $state("");
-	let submitted = $state(false);
 	let mobileMenuOpen = $state(false);
-
-	function handleSubmit(e: Event) {
-		e.preventDefault();
-		if (email.trim()) {
-			submitted = true;
-			email = "";
-		}
-	}
 </script>
 
 <svelte:window bind:scrollY />
 
 <!-- SEO Meta Tags -->
 <svelte:head>
-	<title>materio — Re-imagining the web browser for agents and humans</title>
-	<meta
-		name="description"
-		content="materio is the first browser built from the ground up for human-agent collaboration. Rebuilt for speed, capability, and intelligence."
-	/>
+	<title>Materio</title>
+	<meta name="description"
+		content="Official materials you trust, in a way you love — Because e-learning shouldn't feel like suffering. Find organized, official study materials, notes, and peer help — all in one clean place." />
+	<meta name="robots" content="index, follow">
+	<link rel="canonical" href="https://getmaterio.app">
+	<meta name="keywords"
+		content="Materio, Materio PU, Materio - Home, Materioa, materio, materioa, Parul University, PU, PU Materials, CSE Materials PU, Vadodara, Jinansh Mehta, Materio Github, Materio Study Materials, Study materials, CSE Materials PU">
+
+
+	<!-- Open Graph Meta Tags -->
+	<meta property="og:title" content="Materio">
+	<meta property="og:description"
+		content="Official materials you trust, in a way you love — Because e-learning shouldn't feel like suffering. Find organized, official study materials, notes, and peer help — all in one clean place." />
+	<meta property="og:image" content="https://getmaterio.app/assets/img/open-graph.png">
+	<meta property="og:image" content="https://getmaterio.app/assets/img/open-graph.jpeg">
+	<meta property="og:image" content="https://getmaterio.app/assets/img/open-graph-general.png">
+	<meta property="og:image" content="https://getmaterio.app/assets/img/open-graph-general.jpg">
+	<meta property="og:url" content="https://getmaterio.app">
+	<meta property="og:type" content="website">
+
+	<!-- Twitter Meta Tags -->
+	<meta name="twitter:card" content="summary_large_image">
+	<meta name="twitter:title" content="Materio">
+	<meta name="twitter:description"
+		content="Official materials you trust, in a way you love — Because e-learning shouldn't feel like suffering.">
+	<meta name="twitter:image" content="https://getmaterio.app/assets/img/open-graph.png">
+	<meta name="theme-color" content="#333333">
 </svelte:head>
 
 <ProgressiveBlur
