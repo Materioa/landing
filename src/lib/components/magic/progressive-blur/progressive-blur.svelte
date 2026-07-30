@@ -39,31 +39,31 @@
 		const endPercent = (blurIndex + 2) * 12.5;
 
 		if (position === "bottom") {
-			return `linear-gradient(to bottom, rgba(0,0,0,0) ${startPercent}%, rgba(0,0,0,1) ${midPercent}%, rgba(0,0,0,1) ${endPercent}%, rgba(0,0,0,0) ${endPercent + 12.5}%)`;
+			return `linear-gradient(to bottom, oklch(0 0 0 / 0) ${startPercent}%, oklch(0 0 0) ${midPercent}%, oklch(0 0 0) ${endPercent}%, oklch(0 0 0 / 0) ${endPercent + 12.5}%)`;
 		} else if (position === "top") {
-			return `linear-gradient(to top, rgba(0,0,0,0) ${startPercent}%, rgba(0,0,0,1) ${midPercent}%, rgba(0,0,0,1) ${endPercent}%, rgba(0,0,0,0) ${endPercent + 12.5}%)`;
+			return `linear-gradient(to top, oklch(0 0 0 / 0) ${startPercent}%, oklch(0 0 0) ${midPercent}%, oklch(0 0 0) ${endPercent}%, oklch(0 0 0 / 0) ${endPercent + 12.5}%)`;
 		} else {
-			return `linear-gradient(rgba(0,0,0,0) 0%, rgba(0,0,0,1) 5%, rgba(0,0,0,1) 95%, rgba(0,0,0,0) 100%)`;
+			return `linear-gradient(oklch(0 0 0 / 0) 0%, oklch(0 0 0) 5%, oklch(0 0 0) 95%, oklch(0 0 0 / 0) 100%)`;
 		}
 	};
 
 	const getFirstLayerMask = () => {
 		if (position === "bottom") {
-			return `linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 12.5%, rgba(0,0,0,1) 25%, rgba(0,0,0,0) 37.5%)`;
+			return `linear-gradient(to bottom, oklch(0 0 0 / 0) 0%, oklch(0 0 0) 12.5%, oklch(0 0 0) 25%, oklch(0 0 0 / 0) 37.5%)`;
 		} else if (position === "top") {
-			return `linear-gradient(to top, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 12.5%, rgba(0,0,0,1) 25%, rgba(0,0,0,0) 37.5%)`;
+			return `linear-gradient(to top, oklch(0 0 0 / 0) 0%, oklch(0 0 0) 12.5%, oklch(0 0 0) 25%, oklch(0 0 0 / 0) 37.5%)`;
 		} else {
-			return `linear-gradient(rgba(0,0,0,0) 0%, rgba(0,0,0,1) 5%, rgba(0,0,0,1) 95%, rgba(0,0,0,0) 100%)`;
+			return `linear-gradient(oklch(0 0 0 / 0) 0%, oklch(0 0 0) 5%, oklch(0 0 0) 95%, oklch(0 0 0 / 0) 100%)`;
 		}
 	};
 
 	const getLastLayerMask = () => {
 		if (position === "bottom") {
-			return `linear-gradient(to bottom, rgba(0,0,0,0) 87.5%, rgba(0,0,0,1) 100%)`;
+			return `linear-gradient(to bottom, oklch(0 0 0 / 0) 87.5%, oklch(0 0 0) 100%)`;
 		} else if (position === "top") {
-			return `linear-gradient(to top, rgba(0,0,0,0) 87.5%, rgba(0,0,0,1) 100%)`;
+			return `linear-gradient(to top, oklch(0 0 0 / 0) 87.5%, oklch(0 0 0) 100%)`;
 		} else {
-			return `linear-gradient(rgba(0,0,0,0) 0%, rgba(0,0,0,1) 5%, rgba(0,0,0,1) 95%, rgba(0,0,0,0) 100%)`;
+			return `linear-gradient(oklch(0 0 0 / 0) 0%, oklch(0 0 0) 5%, oklch(0 0 0) 95%, oklch(0 0 0 / 0) 100%)`;
 		}
 	};
 </script>
