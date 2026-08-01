@@ -259,9 +259,9 @@
 			>Features</a
 		>
 		<a
-			href="#use-cases"
+			href="#connectors"
 			class="text-sm font-medium text-neutral-600 hover:text-cream-dark transition-colors"
-			>Use cases</a
+			>Connectors</a
 		>
 		<a
 			href="#resources"
@@ -326,9 +326,9 @@
 					>Features</a
 				>
 				<a
-					href="#use-cases"
+					href="#connectors"
 					class="text-[15px] font-semibold text-neutral-800 hover:text-black transition-colors"
-					>Use cases</a
+					>Connectors</a
 				>
 				<a
 					href="#resources"
@@ -371,7 +371,7 @@
 		>
 			<!-- Main Title -->
 			<h1
-				class="font-sans text-3xl md:text-5xl font-normal tracking-tight text-cream-dark leading-[1.1] mb-6"
+				class="font-sans text-3xl md:text-5xl font-bold tracking-tight text-cream-dark leading-[1.1] mb-6"
 			>
 				Everything you've learned.<br class="hidden sm:inline" /> Instantly
 				accessible.
@@ -381,48 +381,158 @@
 		<!-- Mock Browser Window (Screenshot Container) -->
 		<!-- Overflowing on mobile: fixed width pulls it off the right edge, negative margin clips bottom -->
 		<div
-			class="self-start md:self-center rounded-t-[20px] w-[800px] max-w-none md:w-[calc(100%-96px)] md:max-w-full ml-[15px] md:ml-0 mt-8 md:mt-12 h-[320px] sm:h-[450px] md:h-[550px] bg-cream-100/90 backdrop-blur-xl border-t border-x border-cream-200/40 shadow-[0_20px_50px_oklch(0.2079_0.01_67.2_/_0.06)] flex flex-col relative z-10 overflow-hidden mb-[-20px] md:mb-0"
+			class="self-start md:self-center rounded-t-xl w-[800px] max-w-none md:w-[calc(100%-96px)] md:max-w-full ml-[15px] md:ml-0 mt-8 md:mt-12 h-[320px] sm:h-[450px] md:h-[550px] bg-cream-100/90 backdrop-blur-xl border-t border-x border-cream-200/40 shadow-[0_20px_50px_oklch(0.2079_0.01_67.2_/_0.06)] flex flex-col relative z-10 overflow-hidden mb-[-20px] md:mb-0"
 		>
 			<!-- Browser Header/Toolbar -->
 			<div
-				class="h-11 px-4 border-b border-cream-200/40 flex items-center justify-between bg-cream-100/40 backdrop-blur-sm"
+				class="h-[40px] px-4 border-b border-cream-200/40 flex items-center justify-between bg-cream-100/60 backdrop-blur-sm select-none"
 			>
-				<!-- Traffic Light Controls -->
-				<div class="flex items-center space-x-1.5 w-1/4">
-					<div class="w-3.5 h-3.5 rounded-full bg-red-400/80"></div>
+				<!-- Left side: Traffic Lights & Controls -->
+				<div class="flex items-center space-x-3.5">
+					<!-- Traffic Light Controls -->
+					<div class="flex items-center space-x-1.5">
+						<div class="w-3 h-3 rounded-full bg-[#EC6A5E]"></div>
+						<div class="w-3 h-3 rounded-full bg-[#F4BF4F]"></div>
+						<div class="w-3 h-3 rounded-full bg-[#61C554]"></div>
+					</div>
+					<!-- Sidebar Icon -->
 					<div
-						class="w-3.5 h-3.5 rounded-full bg-yellow-400/80"
-					></div>
-					<div class="w-3.5 h-3.5 rounded-full bg-green-400/80"></div>
+						class="text-neutral-500/80 hover:text-neutral-700 transition-colors ml-2 cursor-pointer"
+					>
+						<svg
+							class="w-4 h-4"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						>
+							<rect
+								x="3"
+								y="3"
+								width="18"
+								height="18"
+								rx="2"
+								stroke-width="1.8"
+							/>
+							<path d="M9 3v18" stroke-width="1.8" />
+						</svg>
+					</div>
+					<!-- Separator -->
+					<div class="h-3 w-[1px] bg-neutral-300/80"></div>
+					<!-- Chevron Down -->
+					<div
+						class="text-neutral-500/80 hover:text-neutral-700 transition-colors cursor-pointer"
+					>
+						<svg
+							class="w-3.5 h-3.5"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2.5"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						>
+							<path d="m6 9 6 6 6-6" />
+						</svg>
+					</div>
+					<!-- Chevron Left (Disabled/Grayed) -->
+					<div class="text-neutral-300 pl-0.5">
+						<svg
+							class="w-4 h-4"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2.2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						>
+							<path d="m15 18-6-6 6-6" />
+						</svg>
+					</div>
 				</div>
 
 				<!-- Address Bar -->
 				<div
-					class="w-2/4 max-w-md h-7 rounded-lg bg-cream-200/55 border border-cream-200/40 px-3 flex items-center space-x-2 text-neutral-500 text-xs"
+					class="flex-grow ml-3 mr-1.5 h-8 rounded-md bg-cream-200/50 border border-cream-300/30 px-2.5 flex items-center justify-between"
 				>
-					<HugeiconsIcon
-						icon={GlobeIcon}
-						size={14}
-						class="text-neutral-400"
-					/>
-					<span class="truncate font-sans font-medium tracking-tight"
-						>https://getmaterio.app</span
+					<!-- Domain info with icon & lock -->
+					<div class="flex items-center space-x-2 pl-0.5">
+						<img
+							src="/assets/img/favicon.png"
+							alt="Favicon"
+							class="w-[15px] h-[15px] rounded-[3px] select-none"
+						/>
+						<span
+							class="text-neutral-700 text-[11px] font-medium tracking-tight"
+							>getmaterio.app</span
+						>
+						<svg
+							class="w-2.5 h-2.5 text-neutral-400/90"
+							viewBox="0 0 24 24"
+							fill="currentColor"
+						>
+							<rect
+								x="3"
+								y="11"
+								width="18"
+								height="11"
+								rx="2"
+								ry="2"
+							/>
+							<path
+								d="M7 11V7a5 5 0 0 1 10 0v4"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+							/>
+						</svg>
+					</div>
+					<!-- Horizontal Menu Dots inside translucent circle -->
+					<div
+						class="w-5 h-5 rounded-full bg-neutral-500/10 flex items-center justify-center text-neutral-500 hover:bg-neutral-500/20 transition-colors cursor-pointer"
 					>
+						<svg
+							class="w-3 h-3"
+							viewBox="0 0 24 24"
+							fill="currentColor"
+						>
+							<circle cx="12" cy="12" r="1.5" />
+							<circle cx="6" cy="12" r="1.5" />
+							<circle cx="18" cy="12" r="1.5" />
+						</svg>
+					</div>
 				</div>
 
 				<!-- Extra Actions -->
 				<div
-					class="w-1/4 flex items-center justify-end space-x-3 text-neutral-400"
+					class="flex items-center justify-end text-neutral-500/80 pl-2"
 				>
 					<div
-						class="w-4 h-4 rounded-md border border-cream-300/60 bg-cream-200/30"
-					></div>
+						class="hover:text-neutral-700 transition-colors cursor-pointer p-0.5"
+					>
+						<svg
+							class="w-4.5 h-4.5"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2.2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						>
+							<path d="M5 12h14" />
+							<path d="M12 5v14" />
+						</svg>
+					</div>
 				</div>
 			</div>
 
 			<div class="flex-grow bg-cream-50/10 relative">
 				<img
-					src="/assets/img/b7b2829d.webp"
+					src="/assets/img/hero.webp"
 					alt="Materio Workspace"
 					class="w-full h-full object-cover object-top"
 				/>
@@ -1423,15 +1533,78 @@
 				</div>
 			</div>
 		</div>
+
+		<!-- Feature 6: SEARCH -->
+		<div
+			class="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-16 items-center"
+		>
+			<!-- Preview Container Column (Left) - Order 2 on Mobile, Order 1 on Desktop -->
+			<div class="md:col-span-7 order-2 md:order-1">
+				<!-- svelte-ignore a11y_no_static_element_interactions -->
+				<div
+					class="w-full bg-cream-100/25 border-[3px] border-cream-300 rounded-3xl relative select-none shadow-[0_8px_30px_rgba(0,0,0,0.015)] h-[300px] md:h-[380px] flex items-center justify-center overflow-hidden"
+					oncontextmenu={(e) => e.preventDefault()}
+				>
+					<!-- Blurred WebP background card -->
+					<div
+						class="absolute inset-0 transition-colors overflow-hidden"
+					>
+						<!-- WebP Image -->
+						<div
+							class="absolute inset-0 bg-cover bg-center"
+							style="background-image: url('/assets/img/24d4ff6ts.webp');"
+						></div>
+						<!-- Light Blur Overlay -->
+						<div
+							class="absolute inset-0 bg-white/40 backdrop-blur-[13px]"
+						></div>
+					</div>
+
+					<!-- Foreground Screenshot Image (middle-aligned, bottom-clipped) -->
+					<img
+						src="/assets/img/ae28fdl60p.webp"
+						alt="Search preview"
+						class="absolute bottom-[-20px] left-1/2 -translate-x-1/2 h-[92%] w-auto object-contain z-20"
+					/>
+				</div>
+			</div>
+
+			<!-- Text Column (Right) - Order 1 on Mobile, Order 2 on Desktop -->
+			<div
+				class="md:col-span-5 flex flex-col space-y-4 order-1 md:order-2"
+			>
+				<span
+					class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest block"
+				>
+					06 / Search
+				</span>
+				<h3
+					class="font-sans text-2xl md:text-3xl font-semibold tracking-tight text-cream-dark leading-tight"
+				>
+					Find exactly what you're looking for.
+				</h3>
+				<p class="font-sans text-base leading-relaxed text-neutral-500">
+					Search across your entire library in seconds. Whether it's a
+					chapter, concept, question bank or lecture slides, Materio
+					surfaces the most relevant materials from your curated
+					collection.
+				</p>
+				<span
+					class="text-xs text-neutral-400 font-semibold tracking-tight pt-2 border-t border-cream-200/60 w-fit"
+				>
+					Fast semantic search across verified study materials.
+				</span>
+			</div>
+		</div>
 	</section>
 
 	<!-- Connectors Section (3D Tilted Grid & Fallback State) -->
 	<section
 		id="connectors"
-		class="w-full max-w-5xl mb-32 flex flex-col items-center text-center space-y-12"
+		class="w-full max-w-5xl mb-32 flex flex-col items-center text-center space-y-4"
 	>
 		<!-- Heading and Badge -->
-		<div class="flex flex-col items-center space-y-4 max-w-2xl">
+		<div class="flex flex-col items-center space-y-3.5 max-w-2xl">
 			<span
 				class="inline-flex items-center space-x-1 text-xs font-semibold text-brand-600 hover:text-brand-700 transition-colors"
 			>
@@ -1447,15 +1620,15 @@
 
 		<!-- 3D Perspective Grid of 6 Logos (1 Row) -->
 		<div
-			class="relative w-full py-10 flex flex-col items-center justify-center"
+			class="relative w-full py-0 flex flex-col items-center justify-center"
 		>
 			<!-- 3D Perspective Wrapper (no overflow-hidden here, so icons can elevate freely) -->
 			<div
-				class="perspective-container relative w-full max-w-3xl px-12 py-6 flex justify-center"
+				class="perspective-container relative w-full max-w-2xl px-2 py-2 flex justify-center z-10"
 			>
 				<!-- Tilted Grid (1 row, 6 columns) -->
 				<div
-					class="grid grid-cols-6 gap-3 sm:gap-6 md:gap-8 w-full max-w-2xl px-2 tilted-grid-transform justify-center justify-items-center"
+					class="grid grid-cols-6 gap-3 sm:gap-6 md:gap-8 w-full px-2 tilted-grid-transform justify-center justify-items-center"
 				>
 					{#each connectorLogos as logo}
 						<div
@@ -1496,18 +1669,26 @@
 			<!-- 2D Overlay Container centered on screen, wrapping the grid width precisely -->
 			<!-- This forces the blurs/fades to render in 2D space on top of the 3D grid and overlap the side icons correctly -->
 			<div
-				class="absolute inset-y-0 left-1/2 -translate-x-1/2 w-full max-w-3xl px-12 pointer-events-none z-30"
+				class="absolute inset-y-0 left-1/2 -translate-x-1/2 w-full max-w-2xl px-2 pointer-events-none z-30"
 			>
-				<!-- Left side blur & fade -->
-				<div class="left-blur-overlay"></div>
+				<!-- Left side progressive blur & fade -->
+				<ProgressiveBlur
+					position="left"
+					width="auto"
+					class="absolute left-0 top-0 bottom-0 z-30 w-12 md:w-[72px]"
+				/>
 				<div
-					class="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-cream-50 to-transparent z-40"
+					class="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-cream-50 to-transparent z-40"
 				></div>
 
-				<!-- Right side blur & fade -->
-				<div class="right-blur-overlay"></div>
+				<!-- Right side progressive blur & fade -->
+				<ProgressiveBlur
+					position="right"
+					width="auto"
+					class="absolute right-0 top-0 bottom-0 z-30 w-12 md:w-[72px]"
+				/>
 				<div
-					class="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-cream-50 to-transparent z-40"
+					class="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-cream-50 to-transparent z-40"
 				></div>
 			</div>
 		</div>
@@ -1761,13 +1942,13 @@
 				Features
 			</a>
 			<a
-				href="#use-cases"
+				href="#connectors"
 				onclick={() => (mobileMenuOpen = false)}
 				in:blurSlide={{ delay: 150 }}
 				out:fade={{ duration: 150 }}
 				class="py-6 px-7 border-t border-cream-200/50 font-sans text-[22px] tracking-tight text-neutral-900 hover:bg-cream-100/50 transition-colors"
 			>
-				Use cases
+				Connectors
 			</a>
 			<a
 				href="#resources"
@@ -1842,63 +2023,7 @@
 	}
 
 	.logo-card:hover {
-		transform: translateY(-14px) translateZ(10px);
-		filter: drop-shadow(0 20px 24px rgba(0, 0, 0, 0.22));
-	}
-
-	.left-blur-overlay {
-		position: absolute;
-		left: 0;
-		top: 0;
-		bottom: 0;
-		width: 96px;
-		z-index: 30;
-		pointer-events: none;
-		backdrop-filter: blur(16px);
-		-webkit-backdrop-filter: blur(16px);
-		mask-image: linear-gradient(
-			to right,
-			rgba(0, 0, 0, 1) 0%,
-			rgba(0, 0, 0, 0) 100%
-		);
-		-webkit-mask-image: linear-gradient(
-			to right,
-			rgba(0, 0, 0, 1) 0%,
-			rgba(0, 0, 0, 0) 100%
-		);
-	}
-
-	@media (min-width: 768px) {
-		.left-blur-overlay {
-			width: 144px;
-		}
-	}
-
-	.right-blur-overlay {
-		position: absolute;
-		right: 0;
-		top: 0;
-		bottom: 0;
-		width: 96px;
-		z-index: 30;
-		pointer-events: none;
-		backdrop-filter: blur(16px);
-		-webkit-backdrop-filter: blur(16px);
-		mask-image: linear-gradient(
-			to left,
-			rgba(0, 0, 0, 1) 0%,
-			rgba(0, 0, 0, 0) 100%
-		);
-		-webkit-mask-image: linear-gradient(
-			to left,
-			rgba(0, 0, 0, 1) 0%,
-			rgba(0, 0, 0, 0) 100%
-		);
-	}
-
-	@media (min-width: 768px) {
-		.right-blur-overlay {
-			width: 144px;
-		}
+		transform: translateY(-6px) translateZ(4px);
+		filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.16));
 	}
 </style>
