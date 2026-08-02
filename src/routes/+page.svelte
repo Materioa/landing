@@ -15,7 +15,7 @@
 		Shield01Icon,
 		SparklesIcon,
 		GlobeIcon,
-		Menu01Icon,
+		Menu09Icon,
 		Cancel01Icon,
 		HeartIcon,
 		GoogleDriveIcon,
@@ -141,6 +141,24 @@
 	);
 
 	let mobileMenuOpen = $state(false);
+
+	$effect(() => {
+		if (typeof document !== "undefined") {
+			if (mobileMenuOpen) {
+				document.body.style.overflow = "hidden";
+				document.documentElement.style.overflow = "hidden";
+			} else {
+				document.body.style.overflow = "";
+				document.documentElement.style.overflow = "";
+			}
+		}
+		return () => {
+			if (typeof document !== "undefined") {
+				document.body.style.overflow = "";
+				document.documentElement.style.overflow = "";
+			}
+		};
+	});
 
 	let stickyActiveTab = $state<"product" | "resources" | "company" | null>(
 		null,
@@ -796,7 +814,7 @@
 			onclick={() => (mobileMenuOpen = true)}
 			class="md:hidden text-neutral-800 p-2 -mr-2 transition-opacity hover:opacity-70"
 		>
-			<HugeiconsIcon icon={Menu01Icon} size={24} />
+			<HugeiconsIcon icon={Menu09Icon} size={24} />
 		</button>
 	</div>
 </header>
@@ -1195,7 +1213,7 @@
 					onclick={() => (mobileMenuOpen = true)}
 					class="md:hidden text-neutral-800 p-2 -mr-2 transition-opacity hover:opacity-70"
 				>
-					<HugeiconsIcon icon={Menu01Icon} size={24} />
+					<HugeiconsIcon icon={Menu09Icon} size={24} />
 				</button>
 			</div>
 		</header>
@@ -2105,7 +2123,7 @@
 			<!-- Text Column (Left) -->
 			<div class="md:col-span-5 flex flex-col space-y-4">
 				<span
-					class="text-[16px] font-semibold text-neutral-400 tracking-widest block"
+					class="text-[14px] font-semibold text-neutral-400 tracking-widest block"
 				>
 					(1)
 				</span>
@@ -2194,7 +2212,7 @@
 				class="md:col-span-5 flex flex-col space-y-4 order-1 md:order-2"
 			>
 				<span
-					class="text-[16px] font-semibold text-neutral-400 tracking-widest block"
+					class="text-[14px] font-semibold text-neutral-400 tracking-widest block"
 				>
 					(2)
 				</span>
@@ -2219,7 +2237,7 @@
 			<!-- Text Column (Left) -->
 			<div class="md:col-span-5 flex flex-col space-y-4">
 				<span
-					class="text-[16px] font-semibold text-neutral-400 tracking-widest block"
+					class="text-[14px] font-semibold text-neutral-400 tracking-widest block"
 				>
 					(3)
 				</span>
@@ -2307,7 +2325,7 @@
 				class="md:col-span-5 flex flex-col space-y-4 order-1 md:order-2"
 			>
 				<span
-					class="text-[16px] font-semibold text-neutral-400 tracking-widest block"
+					class="text-[14px] font-semibold text-neutral-400 tracking-widest block"
 				>
 					(4)
 				</span>
@@ -2331,7 +2349,7 @@
 			<!-- Text Column (Left) -->
 			<div class="md:col-span-5 flex flex-col space-y-4">
 				<span
-					class="text-[16px] font-semibold text-neutral-400 tracking-widest block"
+					class="text-[14px] font-semibold text-neutral-400 tracking-widest block"
 				>
 					(5)
 				</span>
@@ -2419,7 +2437,7 @@
 				class="md:col-span-5 flex flex-col space-y-4 order-1 md:order-2"
 			>
 				<span
-					class="text-[16px] font-semibold text-neutral-400 tracking-widest block"
+					class="text-[14px] font-semibold text-neutral-400 tracking-widest block"
 				>
 					(6)
 				</span>
@@ -2483,7 +2501,7 @@
 				<!-- Typography -->
 				<div class="flex flex-col space-y-2">
 					<span
-						class="text-[16px] font-semibold text-neutral-400 tracking-widest block"
+						class="text-[14px] font-semibold text-neutral-400 tracking-widest block"
 					>
 						(7)
 					</span>
@@ -2533,7 +2551,7 @@
 				<!-- Typography -->
 				<div class="flex flex-col space-y-2">
 					<span
-						class="text-[16px] font-semibold text-neutral-400 tracking-widest block"
+						class="text-[14px] font-semibold text-neutral-400 tracking-widest block"
 					>
 						(8)
 					</span>
@@ -2582,7 +2600,7 @@
 				<!-- Typography -->
 				<div class="flex flex-col space-y-2">
 					<span
-						class="text-[16px] font-semibold text-neutral-400 tracking-widest block"
+						class="text-[14px] font-semibold text-neutral-400 tracking-widest block"
 					>
 						(9)
 					</span>
@@ -2740,28 +2758,22 @@
 				>Thinklet</a
 			>
 			<a
-				href="https://getmaterio.app/changelog"
+				href="/connectors"
 				target="_blank"
 				class="text-[16px] font-semibold text-cream-dark hover:opacity-75 transition-opacity"
-				>Changelog</a
-			>
-			<a
-				href="#mcp"
-				target="_blank"
-				class="text-[16px] font-semibold text-cream-dark hover:opacity-75 transition-opacity"
-				>Materio MCP</a
-			>
-			<a
-				href="#mcp"
-				target="_blank"
-				class="text-[16px] font-semibold text-cream-dark hover:opacity-75 transition-opacity"
-				>NCERT MCP</a
+				>MCP Connectors</a
 			>
 			<a
 				href="#pricing"
 				target="_blank"
 				class="text-[16px] font-semibold text-cream-dark hover:opacity-75 transition-opacity"
 				>Pricing</a
+			>
+			<a
+				href="https://getmaterio.app/changelog"
+				target="_blank"
+				class="text-[16px] font-semibold text-cream-dark hover:opacity-75 transition-opacity"
+				>Changelog</a
 			>
 		</div>
 
@@ -2773,15 +2785,16 @@
 				Resources
 			</h4>
 			<a
-				href="#docs"
+				href="https://getmaterio.app/docs"
+				target="_blank"
 				class="text-[16px] font-semibold text-cream-dark hover:opacity-75 transition-opacity"
 				>Docs</a
 			>
 			<a
-				href="/advertising"
+				href="/downloads"
 				class="text-[16px] font-semibold text-cream-dark hover:opacity-75 transition-opacity"
 			>
-				Advertising
+				Downloads
 			</a>
 			<a
 				href="#faqs"
@@ -2802,6 +2815,12 @@
 				target="_blank"
 				class="text-[16px] font-semibold text-cream-dark hover:opacity-75 transition-opacity"
 				>About</a
+			>
+			<a
+				href="/advertising"
+				target="_blank"
+				class="text-[16px] font-semibold text-cream-dark hover:opacity-75 transition-opacity"
+				>Advertising</a
 			>
 			<a
 				href="https://github.com/Materioa"
@@ -2913,7 +2932,7 @@
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div
 		transition:fade={{ duration: 250 }}
-		class="fixed inset-0 z-[100] bg-cream-50/98 backdrop-blur-xl overflow-y-auto flex flex-col justify-between"
+		class="fixed inset-0 z-[100] bg-cream-50/98 backdrop-blur-xl overflow-y-auto overscroll-contain flex flex-col justify-between"
 	>
 		<div>
 			<!-- Header -->
