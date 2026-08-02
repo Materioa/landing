@@ -1,6 +1,12 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 	import { smoothCorners } from "@lisse/svelte";
+	import {
+		getCookie,
+		setAuthCookie,
+		clearAuthCookie,
+		USER_KEY,
+	} from "$lib/auth";
 	import { ProgressiveBlur } from "$lib/components/magic/progressive-blur";
 	import { HugeiconsIcon } from "@hugeicons/svelte";
 	import {
@@ -17,9 +23,99 @@
 		UniversityIcon,
 		Download01Icon,
 		Bookmark01Icon,
+		Grid2X2PlusIcon,
+		PuzzleIcon,
+		News01Icon,
+		CargoShipIcon,
+		HelpCircleIcon,
+		InformationCircleIcon,
+		AdvertisimentIcon,
+		Mail01Icon,
 	} from "@hugeicons/core-free-icons";
 	import { fade } from "svelte/transition";
 	import { cubicOut } from "svelte/easing";
+
+	interface User {
+		id: string;
+		username: string;
+		displayName: string;
+		email: string;
+		profilePicture: string;
+		isPlusUser: boolean;
+	}
+
+	let user = $state<User | null>(null);
+	let loading = $state(true);
+
+	onMount(async () => {
+		const urlParams = new URLSearchParams(window.location.search);
+		const handoffCode = urlParams.get("handoff");
+
+		if (handoffCode) {
+			try {
+				const response = await fetch(
+					"https://getmaterio.app/api/v2/login",
+					{
+						method: "POST",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify({
+							action: "exchange",
+							code: handoffCode,
+						}),
+					},
+				);
+
+				if (response.ok) {
+					const data = await response.json();
+					if (data.token) {
+						setAuthCookie(data.token);
+						if (data.user) {
+							user = data.user;
+							localStorage.setItem(
+								USER_KEY,
+								JSON.stringify(data.user),
+							);
+						}
+					}
+				}
+			} catch (err) {
+				console.error("Failed to exchange handoff code:", err);
+			} finally {
+				urlParams.delete("handoff");
+				const cleanUrl =
+					window.location.pathname +
+					(urlParams.toString() ? `?${urlParams.toString()}` : "");
+				window.history.replaceState({}, "", cleanUrl);
+				loading = false;
+			}
+		} else {
+			const cookieToken = getCookie("materio_auth_token");
+			const cachedUser = localStorage.getItem(USER_KEY);
+
+			if (cookieToken && cachedUser) {
+				user = JSON.parse(cachedUser);
+			} else if (!cookieToken) {
+				localStorage.removeItem(USER_KEY);
+			}
+			loading = false;
+		}
+	});
+
+	function handleLoginRedirect() {
+		const callbackUrl = window.location.origin + "/";
+		window.location.href = `https://getmaterio.app/account?callback=${encodeURIComponent(callbackUrl)}`;
+	}
+
+	function handleSignupRedirect() {
+		const callbackUrl = window.location.origin + "/";
+		window.location.href = `https://getmaterio.app/account/signup?callback=${encodeURIComponent(callbackUrl)}`;
+	}
+
+	function handleLogout() {
+		clearAuthCookie();
+		user = null;
+		window.location.href = "/";
+	}
 
 	function blurSlide(
 		node: Element,
@@ -45,6 +141,84 @@
 	);
 
 	let mobileMenuOpen = $state(false);
+
+	let stickyActiveTab = $state<"product" | "resources" | "company" | null>(
+		null,
+	);
+	let stickyProductLink = $state<HTMLElement | null>(null);
+	let stickyResourcesLink = $state<HTMLElement | null>(null);
+	let stickyCompanyLink = $state<HTMLElement | null>(null);
+	let lastStickyLeft = 0;
+	let stickyDropdownLeft = $derived.by(() => {
+		if (stickyActiveTab === "product" && stickyProductLink) {
+			lastStickyLeft =
+				stickyProductLink.offsetLeft +
+				stickyProductLink.offsetWidth / 2 -
+				160;
+		} else if (stickyActiveTab === "resources" && stickyResourcesLink) {
+			lastStickyLeft =
+				stickyResourcesLink.offsetLeft +
+				stickyResourcesLink.offsetWidth / 2 -
+				160;
+		} else if (stickyActiveTab === "company" && stickyCompanyLink) {
+			lastStickyLeft =
+				stickyCompanyLink.offsetLeft +
+				stickyCompanyLink.offsetWidth / 2 -
+				160;
+		}
+		return lastStickyLeft;
+	});
+	let stickyWasOpen = $state(false);
+
+	$effect(() => {
+		if (stickyActiveTab) {
+			const t = setTimeout(() => {
+				if (stickyActiveTab) stickyWasOpen = true;
+			}, 50);
+			return () => clearTimeout(t);
+		} else {
+			stickyWasOpen = false;
+		}
+	});
+
+	let heroActiveTab = $state<"product" | "resources" | "company" | null>(
+		null,
+	);
+	let heroProductLink = $state<HTMLElement | null>(null);
+	let heroResourcesLink = $state<HTMLElement | null>(null);
+	let heroCompanyLink = $state<HTMLElement | null>(null);
+	let lastHeroLeft = 0;
+	let heroDropdownLeft = $derived.by(() => {
+		if (heroActiveTab === "product" && heroProductLink) {
+			lastHeroLeft =
+				heroProductLink.offsetLeft +
+				heroProductLink.offsetWidth / 2 -
+				160;
+		} else if (heroActiveTab === "resources" && heroResourcesLink) {
+			lastHeroLeft =
+				heroResourcesLink.offsetLeft +
+				heroResourcesLink.offsetWidth / 2 -
+				160;
+		} else if (heroActiveTab === "company" && heroCompanyLink) {
+			lastHeroLeft =
+				heroCompanyLink.offsetLeft +
+				heroCompanyLink.offsetWidth / 2 -
+				160;
+		}
+		return lastHeroLeft;
+	});
+	let heroWasOpen = $state(false);
+
+	$effect(() => {
+		if (heroActiveTab) {
+			const t = setTimeout(() => {
+				if (heroActiveTab) heroWasOpen = true;
+			}, 50);
+			return () => clearTimeout(t);
+		} else {
+			heroWasOpen = false;
+		}
+	});
 
 	let statusText = $state("All systems operational");
 	let statusType = $state("operational");
@@ -252,39 +426,371 @@
 		/>
 	</a>
 
-	<nav class="hidden md:flex items-center space-x-8">
-		<a
-			href="#features"
-			class="text-sm font-medium text-neutral-600 hover:text-cream-dark transition-colors"
-			>Features</a
+	<!-- Outer wrapper to detect mouse leaving navigation entirely -->
+	<!-- svelte-ignore a11y_mouse_events_have_key_events -->
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<div
+		class="hidden md:flex items-center relative py-2"
+		onmouseleave={() => (stickyActiveTab = null)}
+	>
+		<nav class="flex items-center space-x-8">
+			<!-- Product Tab Button -->
+			<button
+				bind:this={stickyProductLink}
+				onmouseenter={() => (stickyActiveTab = "product")}
+				class="text-sm font-medium text-neutral-600 hover:text-cream-dark transition-colors inline-flex items-center gap-1.5 focus:outline-none"
+			>
+				Product
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke-width="2"
+					stroke="currentColor"
+					class="w-3.5 h-3.5 opacity-60 transition-transform duration-300 {stickyActiveTab ===
+					'product'
+						? 'rotate-180'
+						: ''}"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+					/>
+				</svg>
+			</button>
+
+			<!-- Resources Tab Button -->
+			<button
+				bind:this={stickyResourcesLink}
+				onmouseenter={() => (stickyActiveTab = "resources")}
+				class="text-sm font-medium text-neutral-600 hover:text-cream-dark transition-colors inline-flex items-center gap-1.5 focus:outline-none"
+			>
+				Resources
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke-width="2"
+					stroke="currentColor"
+					class="w-3.5 h-3.5 opacity-60 transition-transform duration-300 {stickyActiveTab ===
+					'resources'
+						? 'rotate-180'
+						: ''}"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+					/>
+				</svg>
+			</button>
+
+			<!-- Company Tab Button -->
+			<button
+				bind:this={stickyCompanyLink}
+				onmouseenter={() => (stickyActiveTab = "company")}
+				class="text-sm font-medium text-neutral-600 hover:text-cream-dark transition-colors inline-flex items-center gap-1.5 focus:outline-none"
+			>
+				Company
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke-width="2"
+					stroke="currentColor"
+					class="w-3.5 h-3.5 opacity-60 transition-transform duration-300 {stickyActiveTab ===
+					'company'
+						? 'rotate-180'
+						: ''}"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+					/>
+				</svg>
+			</button>
+
+			<!-- Pricing Link -->
+			<a
+				href="#pricing"
+				onmouseenter={() => (stickyActiveTab = null)}
+				class="text-sm font-medium text-neutral-600 hover:text-cream-dark transition-colors"
+				>Pricing</a
+			>
+		</nav>
+
+		<!-- Single shared dropdown panel container (Solid, rounded-2xl, absolute-positioned) -->
+		<div
+			class="absolute top-full mt-2 w-[320px] bg-white border border-cream-300 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.12)] origin-top z-50 overflow-hidden {stickyActiveTab
+				? 'opacity-100 visible scale-100 translate-y-0'
+				: 'opacity-0 invisible scale-95 translate-y-1.5 pointer-events-none'}"
+			style="left: {stickyDropdownLeft}px; transition: {stickyWasOpen
+				? 'left 300ms cubic-bezier(0.16, 1, 0.3, 1), '
+				: ''} opacity 300ms, transform 300ms, visibility 300ms;"
 		>
-		<a
-			href="#connectors"
-			class="text-sm font-medium text-neutral-600 hover:text-cream-dark transition-colors"
-			>Connectors</a
-		>
-		<a
-			href="#resources"
-			class="text-sm font-medium text-neutral-600 hover:text-cream-dark transition-colors"
-			>Resources</a
-		>
-		<a
-			href="#pricing"
-			class="text-sm font-medium text-neutral-600 hover:text-cream-dark transition-colors"
-			>Pricing</a
-		>
-	</nav>
+			<div class="w-full overflow-hidden">
+				<!-- Sliding inner block -->
+				<div
+					class="flex {stickyWasOpen
+						? 'transition-transform duration-300 ease-out'
+						: ''}"
+					style="width: 960px; transform: translateX({stickyActiveTab ===
+					'resources'
+						? '-320px'
+						: stickyActiveTab === 'company'
+							? '-640px'
+							: '0px'})"
+				>
+					<!-- Pane 1: Product -->
+					<div
+						class="w-[320px] p-[26px] flex flex-col space-y-[12px] shrink-0"
+					>
+						<a
+							href="#features"
+							class="flex items-start gap-[20px] p-[10px] -mx-[10px] rounded-xl hover:bg-cream-100/40 transition-colors duration-200 group/item text-left font-normal"
+						>
+							<HugeiconsIcon
+								icon={Grid2X2PlusIcon}
+								size={20}
+								strokeWidth={2}
+								class="text-neutral-400 mt-0.5 shrink-0"
+							/>
+							<div class="flex flex-col">
+								<span
+									class="text-[15px] font-semibold text-neutral-900 group-hover/item:text-cream-dark transition-colors"
+									>Features</span
+								>
+								<span
+									class="text-[13px] text-neutral-400 font-medium mt-0.5"
+									>Built for everyday studying</span
+								>
+							</div>
+						</a>
+						<a
+							href="/connectors"
+							target="_blank"
+							class="flex items-start gap-[20px] p-[10px] -mx-[10px] rounded-xl hover:bg-cream-100/40 transition-colors duration-200 group/item text-left font-normal"
+						>
+							<HugeiconsIcon
+								icon={PuzzleIcon}
+								size={20}
+								strokeWidth={2}
+								class="text-neutral-400 mt-0.5 shrink-0"
+							/>
+							<div class="flex flex-col">
+								<span
+									class="text-[15px] font-semibold text-neutral-900 group-hover/item:text-cream-dark transition-colors"
+									>Connectors</span
+								>
+								<span
+									class="text-[13px] text-neutral-400 font-medium mt-0.5"
+									>Available wherever you work</span
+								>
+							</div>
+						</a>
+						<a
+							href="https://room.getmaterio.app"
+							target="_blank"
+							class="flex items-start gap-[20px] p-[10px] -mx-[10px] rounded-xl hover:bg-cream-100/40 transition-colors duration-200 group/item text-left font-normal"
+						>
+							<HugeiconsIcon
+								icon={News01Icon}
+								size={20}
+								strokeWidth={2}
+								class="text-neutral-400 mt-0.5 shrink-0"
+							/>
+							<div class="flex flex-col">
+								<span
+									class="text-[15px] font-semibold text-neutral-900 group-hover/item:text-cream-dark transition-colors"
+									>Insightroom</span
+								>
+								<span
+									class="text-[13px] text-neutral-400 font-medium mt-0.5"
+									>Originals for deeper learning</span
+								>
+							</div>
+						</a>
+					</div>
+
+					<!-- Pane 2: Resources -->
+					<div
+						class="w-[320px] p-[26px] flex flex-col space-y-[12px] shrink-0"
+					>
+						<a
+							href="https://getmaterio.app/changelog"
+							target="_blank"
+							class="flex items-start gap-[20px] p-[10px] -mx-[10px] rounded-xl hover:bg-cream-100/40 transition-colors duration-200 group/item text-left font-normal"
+						>
+							<HugeiconsIcon
+								icon={CargoShipIcon}
+								size={20}
+								strokeWidth={2}
+								class="text-neutral-400 mt-0.5 shrink-0"
+							/>
+							<div class="flex flex-col">
+								<span
+									class="text-[15px] font-semibold text-neutral-900 group-hover/item:text-cream-dark transition-colors"
+									>Changelog</span
+								>
+								<span
+									class="text-[13px] text-neutral-400 font-medium mt-0.5"
+									>What's new and updates</span
+								>
+							</div>
+						</a>
+						<a
+							href="#downloads"
+							class="flex items-start gap-[20px] p-[10px] -mx-[10px] rounded-xl hover:bg-cream-100/40 transition-colors duration-200 group/item text-left font-normal"
+						>
+							<HugeiconsIcon
+								icon={Download01Icon}
+								size={20}
+								strokeWidth={2}
+								class="text-neutral-400 mt-0.5 shrink-0"
+							/>
+							<div class="flex flex-col">
+								<span
+									class="text-[15px] font-semibold text-neutral-900 group-hover/item:text-cream-dark transition-colors"
+									>Downloads</span
+								>
+								<span
+									class="text-[13px] text-neutral-400 font-medium mt-0.5"
+									>Get the App</span
+								>
+							</div>
+						</a>
+						<a
+							href="#faqs"
+							class="flex items-start gap-[20px] p-[10px] -mx-[10px] rounded-xl hover:bg-cream-100/40 transition-colors duration-200 group/item text-left font-normal"
+						>
+							<HugeiconsIcon
+								icon={HelpCircleIcon}
+								size={20}
+								strokeWidth={2}
+								class="text-neutral-400 mt-0.5 shrink-0"
+							/>
+							<div class="flex flex-col">
+								<span
+									class="text-[15px] font-semibold text-neutral-900 group-hover/item:text-cream-dark transition-colors"
+									>FAQ</span
+								>
+								<span
+									class="text-[13px] text-neutral-400 font-medium mt-0.5"
+									>Frequently Asked Questions</span
+								>
+							</div>
+						</a>
+					</div>
+
+					<!-- Pane 3: Company -->
+					<div
+						class="w-[320px] p-[26px] flex flex-col space-y-[12px] shrink-0"
+					>
+						<a
+							href="https://getmaterio.app/whatisthis"
+							target="_blank"
+							class="flex items-start gap-[20px] p-[10px] -mx-[10px] rounded-xl hover:bg-cream-100/40 transition-colors duration-200 group/item text-left font-normal"
+						>
+							<HugeiconsIcon
+								icon={InformationCircleIcon}
+								size={20}
+								strokeWidth={2}
+								class="text-neutral-400 mt-0.5 shrink-0"
+							/>
+							<div class="flex flex-col">
+								<span
+									class="text-[15px] font-semibold text-neutral-900 group-hover/item:text-cream-dark transition-colors"
+									>About</span
+								>
+								<span
+									class="text-[13px] text-neutral-400 font-medium mt-0.5"
+									>Our story and mission</span
+								>
+							</div>
+						</a>
+						<a
+							href="/advertising"
+							class="flex items-start gap-[20px] p-[10px] -mx-[10px] rounded-xl hover:bg-cream-100/40 transition-colors duration-200 group/item text-left font-normal"
+						>
+							<HugeiconsIcon
+								icon={AdvertisimentIcon}
+								size={20}
+								strokeWidth={2}
+								class="text-neutral-400 mt-0.5 shrink-0"
+							/>
+							<div class="flex flex-col">
+								<span
+									class="text-[15px] font-semibold text-neutral-900 group-hover/item:text-cream-dark transition-colors"
+									>Advertising</span
+								>
+								<span
+									class="text-[13px] text-neutral-400 font-medium mt-0.5"
+									>Partner with Materio</span
+								>
+							</div>
+						</a>
+						<a
+							href="mailto:hello@getmaterio.app"
+							class="flex items-start gap-[20px] p-[10px] -mx-[10px] rounded-xl hover:bg-cream-100/40 transition-colors duration-200 group/item text-left font-normal"
+						>
+							<HugeiconsIcon
+								icon={Mail01Icon}
+								size={20}
+								strokeWidth={2}
+								class="text-neutral-400 mt-0.5 shrink-0"
+							/>
+							<div class="flex flex-col">
+								<span
+									class="text-[15px] font-semibold text-neutral-900 group-hover/item:text-cream-dark transition-colors"
+									>Contact</span
+								>
+								<span
+									class="text-[13px] text-neutral-400 font-medium mt-0.5"
+									>Get in touch with us</span
+								>
+							</div>
+						</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 
 	<div class="flex items-center">
-		<div class="hidden md:block">
-			<a
-				href="https://getmaterio.app"
-				target="_blank"
-				use:smoothCorners={{ corners: { radius: 12, smoothing: 0.8 } }}
-				class="inline-flex items-center justify-center px-4 py-2 text-xs font-semibold tracking-wide text-cream-50 bg-cream-dark hover:bg-neutral-800 transition-all hover:shadow-md hover:-translate-y-0.5 active:translate-y-0"
-			>
-				Try Now
-			</a>
+		<div class="hidden md:flex items-center gap-6 mr-6">
+			{#if !loading && user}
+				<button
+					onclick={handleLogout}
+					class="text-sm font-semibold text-neutral-600 hover:text-cream-dark transition-colors focus:outline-none"
+				>
+					Log Out
+				</button>
+				<a
+					href="https://getmaterio.app"
+					target="_blank"
+					class="text-sm font-semibold text-neutral-600 hover:text-cream-dark transition-colors focus:outline-none"
+				>
+					Go to App
+				</a>
+			{:else}
+				<button
+					onclick={handleLoginRedirect}
+					class="text-sm font-semibold text-neutral-600 hover:text-cream-dark transition-colors focus:outline-none"
+				>
+					Login
+				</button>
+				<button
+					onclick={handleSignupRedirect}
+					use:smoothCorners={{
+						corners: { radius: 12, smoothing: 0.8 },
+					}}
+					class="inline-flex items-center justify-center px-4 py-2 text-xs font-semibold tracking-wide text-white transition-all focus:outline-none btn-dark-header"
+				>
+					Get Started
+				</button>
+			{/if}
 		</div>
 		<button
 			onclick={() => (mobileMenuOpen = true)}
@@ -307,7 +813,7 @@
 	>
 		<!-- Inline Card Header (Scrolls naturally inside the card) -->
 		<header
-			class="w-full flex items-center justify-between pt-[15px] px-[15px] bg-transparent mb-16 relative z-20"
+			class="w-full flex items-center justify-between pt-[15px] px-[15px] bg-transparent mb-16 relative z-[60]"
 		>
 			<!-- Logo -->
 			<a href="/" class="flex items-center group ml-3 md:ml-5">
@@ -318,43 +824,372 @@
 				/>
 			</a>
 
-			<!-- Navigation -->
-			<nav class="hidden md:flex items-center space-x-10">
-				<a
-					href="#features"
-					class="text-[15px] font-semibold text-neutral-800 hover:text-black transition-colors"
-					>Features</a
+			<!-- Navigation with single shared sliding dropdown box -->
+			<!-- svelte-ignore a11y_mouse_events_have_key_events -->
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<div
+				class="hidden md:flex items-center relative py-2"
+				onmouseleave={() => (heroActiveTab = null)}
+			>
+				<nav class="flex items-center space-x-10">
+					<!-- Product Tab Button -->
+					<button
+						bind:this={heroProductLink}
+						onmouseenter={() => (heroActiveTab = "product")}
+						class="text-[15px] font-semibold text-neutral-800 hover:text-black transition-colors inline-flex items-center gap-1.5 focus:outline-none"
+					>
+						Product
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke-width="2"
+							stroke="currentColor"
+							class="w-3.5 h-3.5 opacity-60 transition-transform duration-300 {heroActiveTab ===
+							'product'
+								? 'rotate-180'
+								: ''}"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+							/>
+						</svg>
+					</button>
+
+					<!-- Resources Tab Button -->
+					<button
+						bind:this={heroResourcesLink}
+						onmouseenter={() => (heroActiveTab = "resources")}
+						class="text-[15px] font-semibold text-neutral-800 hover:text-black transition-colors inline-flex items-center gap-1.5 focus:outline-none"
+					>
+						Resources
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke-width="2"
+							stroke="currentColor"
+							class="w-3.5 h-3.5 opacity-60 transition-transform duration-300 {heroActiveTab ===
+							'resources'
+								? 'rotate-180'
+								: ''}"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+							/>
+						</svg>
+					</button>
+
+					<!-- Company Tab Button -->
+					<button
+						bind:this={heroCompanyLink}
+						onmouseenter={() => (heroActiveTab = "company")}
+						class="text-[15px] font-semibold text-neutral-800 hover:text-black transition-colors inline-flex items-center gap-1.5 focus:outline-none"
+					>
+						Company
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke-width="2"
+							stroke="currentColor"
+							class="w-3.5 h-3.5 opacity-60 transition-transform duration-300 {heroActiveTab ===
+							'company'
+								? 'rotate-180'
+								: ''}"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+							/>
+						</svg>
+					</button>
+
+					<!-- Pricing Link -->
+					<a
+						href="#pricing"
+						onmouseenter={() => (heroActiveTab = null)}
+						class="text-[15px] font-semibold text-neutral-800 hover:text-black transition-colors"
+						>Pricing</a
+					>
+				</nav>
+
+				<!-- Single shared dropdown panel container (Solid, rounded-2xl, absolute-positioned) -->
+				<div
+					class="absolute top-full mt-2 w-[320px] bg-white border border-cream-300 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.12)] origin-top z-50 overflow-hidden {heroActiveTab
+						? 'opacity-100 visible scale-100 translate-y-0'
+						: 'opacity-0 invisible scale-95 translate-y-1.5 pointer-events-none'}"
+					style="left: {heroDropdownLeft}px; transition: {heroWasOpen
+						? 'left 300ms cubic-bezier(0.16, 1, 0.3, 1), '
+						: ''} opacity 300ms, transform 300ms, visibility 300ms;"
 				>
-				<a
-					href="#connectors"
-					class="text-[15px] font-semibold text-neutral-800 hover:text-black transition-colors"
-					>Connectors</a
-				>
-				<a
-					href="#resources"
-					class="text-[15px] font-semibold text-neutral-800 hover:text-black transition-colors"
-					>Resources</a
-				>
-				<a
-					href="#pricing"
-					class="text-[15px] font-semibold text-neutral-800 hover:text-black transition-colors"
-					>Pricing</a
-				>
-			</nav>
+					<div class="w-full overflow-hidden">
+						<!-- Sliding inner block -->
+						<div
+							class="flex {heroWasOpen
+								? 'transition-transform duration-300 ease-out'
+								: ''}"
+							style="width: 960px; transform: translateX({heroActiveTab ===
+							'resources'
+								? '-320px'
+								: heroActiveTab === 'company'
+									? '-640px'
+									: '0px'})"
+						>
+							<!-- Pane 1: Product -->
+							<div
+								class="w-[320px] p-[26px] flex flex-col space-y-[12px] shrink-0"
+							>
+								<a
+									href="#features"
+									class="flex items-start gap-[20px] p-[10px] -mx-[10px] rounded-xl hover:bg-cream-100/40 transition-colors duration-200 group/item text-left font-normal"
+								>
+									<HugeiconsIcon
+										icon={Grid2X2PlusIcon}
+										size={20}
+										strokeWidth={2}
+										class="text-neutral-400 mt-0.5 shrink-0"
+									/>
+									<div class="flex flex-col">
+										<span
+											class="text-[15px] font-semibold text-neutral-900 group-hover/item:text-cream-dark transition-colors"
+											>Features</span
+										>
+										<span
+											class="text-[13px] text-neutral-400 font-medium mt-0.5"
+											>Built for everyday studying</span
+										>
+									</div>
+								</a>
+								<a
+									href="/connectors"
+									target="_blank"
+									class="flex items-start gap-[20px] p-[10px] -mx-[10px] rounded-xl hover:bg-cream-100/40 transition-colors duration-200 group/item text-left font-normal"
+								>
+									<HugeiconsIcon
+										icon={PuzzleIcon}
+										size={20}
+										strokeWidth={2}
+										class="text-neutral-400 mt-0.5 shrink-0"
+									/>
+									<div class="flex flex-col">
+										<span
+											class="text-[15px] font-semibold text-neutral-900 group-hover/item:text-cream-dark transition-colors"
+											>Connectors</span
+										>
+										<span
+											class="text-[13px] text-neutral-400 font-medium mt-0.5"
+											>Available wherever you work</span
+										>
+									</div>
+								</a>
+								<a
+									href="https://room.getmaterio.app"
+									target="_blank"
+									class="flex items-start gap-[20px] p-[10px] -mx-[10px] rounded-xl hover:bg-cream-100/40 transition-colors duration-200 group/item text-left font-normal"
+								>
+									<HugeiconsIcon
+										icon={News01Icon}
+										size={20}
+										strokeWidth={2}
+										class="text-neutral-400 mt-0.5 shrink-0"
+									/>
+									<div class="flex flex-col">
+										<span
+											class="text-[15px] font-semibold text-neutral-900 group-hover/item:text-cream-dark transition-colors"
+											>Insightroom</span
+										>
+										<span
+											class="text-[13px] text-neutral-400 font-medium mt-0.5"
+											>Originals for deeper learning</span
+										>
+									</div>
+								</a>
+							</div>
+
+							<!-- Pane 2: Resources -->
+							<div
+								class="w-[320px] p-[26px] flex flex-col space-y-[12px] shrink-0"
+							>
+								<a
+									href="https://getmaterio.app/changelog"
+									target="_blank"
+									class="flex items-start gap-[20px] p-[10px] -mx-[10px] rounded-xl hover:bg-cream-100/40 transition-colors duration-200 group/item text-left font-normal"
+								>
+									<HugeiconsIcon
+										icon={CargoShipIcon}
+										size={20}
+										strokeWidth={2}
+										class="text-neutral-400 mt-0.5 shrink-0"
+									/>
+									<div class="flex flex-col">
+										<span
+											class="text-[15px] font-semibold text-neutral-900 group-hover/item:text-cream-dark transition-colors"
+											>Changelog</span
+										>
+										<span
+											class="text-[13px] text-neutral-400 font-medium mt-0.5"
+											>What's new and updates</span
+										>
+									</div>
+								</a>
+								<a
+									href="#downloads"
+									class="flex items-start gap-[20px] p-[10px] -mx-[10px] rounded-xl hover:bg-cream-100/40 transition-colors duration-200 group/item text-left font-normal"
+								>
+									<HugeiconsIcon
+										icon={Download01Icon}
+										size={20}
+										strokeWidth={2}
+										class="text-neutral-400 mt-0.5 shrink-0"
+									/>
+									<div class="flex flex-col">
+										<span
+											class="text-[15px] font-semibold text-neutral-900 group-hover/item:text-cream-dark transition-colors"
+											>Downloads</span
+										>
+										<span
+											class="text-[13px] text-neutral-400 font-medium mt-0.5"
+											>Get the App</span
+										>
+									</div>
+								</a>
+								<a
+									href="#faqs"
+									class="flex items-start gap-[20px] p-[10px] -mx-[10px] rounded-xl hover:bg-cream-100/40 transition-colors duration-200 group/item text-left font-normal"
+								>
+									<HugeiconsIcon
+										icon={HelpCircleIcon}
+										size={20}
+										strokeWidth={2}
+										class="text-neutral-400 mt-0.5 shrink-0"
+									/>
+									<div class="flex flex-col">
+										<span
+											class="text-[15px] font-semibold text-neutral-900 group-hover/item:text-cream-dark transition-colors"
+											>FAQ</span
+										>
+										<span
+											class="text-[13px] text-neutral-400 font-medium mt-0.5"
+											>Frequently Asked Questions</span
+										>
+									</div>
+								</a>
+							</div>
+
+							<!-- Pane 3: Company -->
+							<div
+								class="w-[320px] p-[26px] flex flex-col space-y-[12px] shrink-0"
+							>
+								<a
+									href="https://getmaterio.app/whatisthis"
+									target="_blank"
+									class="flex items-start gap-[20px] p-[10px] -mx-[10px] rounded-xl hover:bg-cream-100/40 transition-colors duration-200 group/item text-left font-normal"
+								>
+									<HugeiconsIcon
+										icon={InformationCircleIcon}
+										size={20}
+										strokeWidth={2}
+										class="text-neutral-400 mt-0.5 shrink-0"
+									/>
+									<div class="flex flex-col">
+										<span
+											class="text-[15px] font-semibold text-neutral-900 group-hover/item:text-cream-dark transition-colors"
+											>About</span
+										>
+										<span
+											class="text-[13px] text-neutral-400 font-medium mt-0.5"
+											>Our story and mission</span
+										>
+									</div>
+								</a>
+								<a
+									href="/advertising"
+									class="flex items-start gap-[20px] p-[10px] -mx-[10px] rounded-xl hover:bg-cream-100/40 transition-colors duration-200 group/item text-left font-normal"
+								>
+									<HugeiconsIcon
+										icon={AdvertisimentIcon}
+										size={20}
+										strokeWidth={2}
+										class="text-neutral-400 mt-0.5 shrink-0"
+									/>
+									<div class="flex flex-col">
+										<span
+											class="text-[15px] font-semibold text-neutral-900 group-hover/item:text-cream-dark transition-colors"
+											>Advertising</span
+										>
+										<span
+											class="text-[13px] text-neutral-400 font-medium mt-0.5"
+											>Partner with Materio</span
+										>
+									</div>
+								</a>
+								<a
+									href="mailto:hello@getmaterio.app"
+									class="flex items-start gap-[20px] p-[10px] -mx-[10px] rounded-xl hover:bg-cream-100/40 transition-colors duration-200 group/item text-left font-normal"
+								>
+									<HugeiconsIcon
+										icon={Mail01Icon}
+										size={20}
+										strokeWidth={2}
+										class="text-neutral-400 mt-0.5 shrink-0"
+									/>
+									<div class="flex flex-col">
+										<span
+											class="text-[15px] font-semibold text-neutral-900 group-hover/item:text-cream-dark transition-colors"
+											>Contact</span
+										>
+										<span
+											class="text-[13px] text-neutral-400 font-medium mt-0.5"
+											>Get in touch with us</span
+										>
+									</div>
+								</a>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
 
 			<!-- CTA & Mobile Menu -->
 			<div class="flex items-center">
-				<div class="hidden md:block">
-					<a
-						href="https://getmaterio.app"
-						target="_blank"
-						use:smoothCorners={{
-							corners: { radius: 14, smoothing: 0.8 },
-						}}
-						class="inline-flex items-center justify-center px-5 py-2.5 text-sm font-semibold tracking-wide text-cream-50 bg-cream-dark hover:bg-neutral-800 transition-all hover:shadow-md hover:-translate-y-0.5 active:translate-y-0"
-					>
-						Try Now
-					</a>
+				<div class="hidden md:flex items-center gap-6 mr-6">
+					{#if !loading && user}
+						<button
+							onclick={handleLogout}
+							class="text-[15px] font-semibold text-neutral-800 hover:text-black transition-colors focus:outline-none"
+						>
+							Log Out
+						</button>
+						<a
+							href="https://getmaterio.app"
+							target="_blank"
+							class="text-[15px] font-semibold text-neutral-800 hover:text-black transition-colors focus:outline-none"
+						>
+							Go to App
+						</a>
+					{:else}
+						<button
+							onclick={handleLoginRedirect}
+							class="text-[15px] font-semibold text-neutral-800 hover:text-black transition-colors focus:outline-none"
+						>
+							Login
+						</button>
+						<button
+							onclick={handleSignupRedirect}
+							use:smoothCorners={{
+								corners: { radius: 14, smoothing: 0.8 },
+							}}
+							class="inline-flex items-center justify-center px-5 py-2.5 text-sm font-semibold tracking-wide text-white transition-all focus:outline-none btn-dark-header"
+						>
+							Get Started
+						</button>
+					{/if}
 				</div>
 				<button
 					onclick={() => (mobileMenuOpen = true)}
@@ -373,9 +1208,45 @@
 			<h1
 				class="font-sans text-3xl md:text-5xl font-bold tracking-tight text-cream-dark leading-[1.1] mb-6"
 			>
-				Everything you've learned.<br class="hidden sm:inline" /> Instantly
+				Everything you've been taught.<br class="hidden sm:inline" /> Instantly
 				accessible.
 			</h1>
+
+			<!-- Hero CTA Buttons -->
+			<div class="flex flex-row items-center gap-4 mt-2 mb-4 select-none">
+				{#if !loading && user}
+					<a
+						href="https://getmaterio.app"
+						target="_blank"
+						use:smoothCorners={{
+							corners: { radius: 14, smoothing: 0.8 },
+						}}
+						class="inline-flex items-center justify-center px-7 py-3 text-sm font-semibold tracking-wide text-white transition-all active:scale-[0.98] focus:outline-none btn-dark-hero"
+					>
+						Go to App
+					</a>
+				{:else}
+					<button
+						onclick={handleSignupRedirect}
+						use:smoothCorners={{
+							corners: { radius: 14, smoothing: 0.8 },
+						}}
+						class="inline-flex items-center justify-center px-7 py-3 text-sm font-semibold tracking-wide text-white transition-all active:scale-[0.98] focus:outline-none btn-dark-hero"
+					>
+						Get Started
+					</button>
+					<a
+						href="https://getmaterio.app"
+						target="_blank"
+						use:smoothCorners={{
+							corners: { radius: 14, smoothing: 0.8 },
+						}}
+						class="inline-flex items-center justify-center px-7 py-3 text-sm font-semibold tracking-wide text-neutral-800 transition-all active:scale-[0.98] focus:outline-none btn-light-hero"
+					>
+						Explore
+					</a>
+				{/if}
+			</div>
 		</div>
 
 		<!-- Mock Browser Window (Screenshot Container) -->
@@ -542,7 +1413,7 @@
 
 	<section
 		id="problem"
-		class="w-full max-w-5xl flex flex-col pt-12 border-t border-cream-200 mb-24 space-y-8"
+		class="w-full max-w-5xl px-5 sm:px-6 md:px-0 flex flex-col pt-12 border-t border-cream-200 mb-24 space-y-8"
 	>
 		<!-- Heading and Paragraph Row -->
 		<div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
@@ -1170,7 +2041,7 @@
 	<!-- Info Grid (Below the Hero Card) -->
 	{#if posts.length > 0}
 		<div
-			class="w-full max-w-5xl grid grid-cols-1 md:grid-cols-12 gap-8 pt-6 border-t border-cream-200 mb-24"
+			class="w-full max-w-5xl px-5 sm:px-6 md:px-0 grid grid-cols-1 md:grid-cols-12 gap-8 pt-6 border-t border-cream-200 mb-24"
 		>
 			<div class="md:col-span-4 flex flex-col">
 				<a
@@ -1225,7 +2096,7 @@
 	<!-- Features Section (Premium Editorial Zig-Zag Layout) -->
 	<section
 		id="features"
-		class="w-full max-w-5xl mb-32 flex flex-col space-y-24 md:space-y-36"
+		class="w-full max-w-5xl px-5 sm:px-6 md:px-0 mb-32 flex flex-col space-y-24 md:space-y-36"
 	>
 		<!-- Feature 1: NAVIGATION -->
 		<div
@@ -1234,9 +2105,9 @@
 			<!-- Text Column (Left) -->
 			<div class="md:col-span-5 flex flex-col space-y-4">
 				<span
-					class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest block"
+					class="text-[16px] font-semibold text-neutral-400 tracking-widest block"
 				>
-					01 / Navigation
+					(1)
 				</span>
 				<h3
 					class="font-sans text-2xl md:text-3xl font-semibold tracking-tight text-cream-dark leading-tight"
@@ -1249,11 +2120,6 @@
 					students actually study, making every subject, topic and
 					resource easy to reach.
 				</p>
-				<span
-					class="text-xs text-neutral-400 font-semibold tracking-tight pt-2 border-t border-cream-200/60 w-fit"
-				>
-					Quick access to semesters, subjects, and recent files.
-				</span>
 			</div>
 
 			<!-- Preview Container Column (Right) -->
@@ -1328,9 +2194,9 @@
 				class="md:col-span-5 flex flex-col space-y-4 order-1 md:order-2"
 			>
 				<span
-					class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest block"
+					class="text-[16px] font-semibold text-neutral-400 tracking-widest block"
 				>
-					02 / Thinklet
+					(2)
 				</span>
 				<h3
 					class="font-sans text-2xl md:text-3xl font-semibold tracking-tight text-cream-dark leading-tight"
@@ -1343,11 +2209,6 @@
 					explore complex concepts naturally without ever leaving the
 					page.
 				</p>
-				<span
-					class="text-xs text-neutral-400 font-semibold tracking-tight pt-2 border-t border-cream-200/60 w-fit"
-				>
-					Context-aware AI assistance with in-text citations.
-				</span>
 			</div>
 		</div>
 
@@ -1358,9 +2219,9 @@
 			<!-- Text Column (Left) -->
 			<div class="md:col-span-5 flex flex-col space-y-4">
 				<span
-					class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest block"
+					class="text-[16px] font-semibold text-neutral-400 tracking-widest block"
 				>
-					03 / Personalization
+					(3)
 				</span>
 				<h3
 					class="font-sans text-2xl md:text-3xl font-semibold tracking-tight text-cream-dark leading-tight"
@@ -1372,12 +2233,6 @@
 					whenever you return, creating a seamless experience across
 					every study session.
 				</p>
-				<span
-					class="text-xs text-neutral-400 font-semibold tracking-tight pt-2 border-t border-cream-200/60 w-fit"
-				>
-					Continue reading indicators and personalized study
-					recommendations.
-				</span>
 			</div>
 
 			<!-- Preview Container Column (Right) -->
@@ -1406,7 +2261,7 @@
 					<img
 						src="/assets/img/Frame@2160p.webp"
 						alt="Personalization preview"
-						class="absolute top-[20%] right-0 w-[80%] md:w-[70%] h-auto object-contain z-20"
+						class="absolute top-[38%] md:top-[20%] right-0 w-[90%] md:w-[70%] h-auto object-contain z-20"
 					/>
 				</div>
 			</div>
@@ -1442,7 +2297,7 @@
 					<img
 						src="/assets/img/5rm2160p.webp"
 						alt="Reading Experience preview"
-						class="absolute top-[25px] left-1/2 -translate-x-1/2 w-[85%] md:w-[80%] h-auto object-contain z-20"
+						class="absolute top-[60px] md:top-[25px] left-1/2 -translate-x-1/2 w-[92%] md:w-[80%] h-auto object-contain z-20"
 					/>
 				</div>
 			</div>
@@ -1452,9 +2307,9 @@
 				class="md:col-span-5 flex flex-col space-y-4 order-1 md:order-2"
 			>
 				<span
-					class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest block"
+					class="text-[16px] font-semibold text-neutral-400 tracking-widest block"
 				>
-					04 / Reading Modes
+					(4)
 				</span>
 				<h3
 					class="font-sans text-2xl md:text-3xl font-semibold tracking-tight text-cream-dark leading-tight"
@@ -1466,11 +2321,6 @@
 					Whether you're reading during the day, at night or on an
 					e-ink display, Materio adapts with you.
 				</p>
-				<span
-					class="text-xs text-neutral-400 font-semibold tracking-tight pt-2 border-t border-cream-200/60 w-fit"
-				>
-					Support for Paper, Night, Inversion, and E-Ink modes.
-				</span>
 			</div>
 		</div>
 
@@ -1481,9 +2331,9 @@
 			<!-- Text Column (Left) -->
 			<div class="md:col-span-5 flex flex-col space-y-4">
 				<span
-					class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest block"
+					class="text-[16px] font-semibold text-neutral-400 tracking-widest block"
 				>
-					05 / InsightRoom
+					(5)
 				</span>
 				<h3
 					class="font-sans text-2xl md:text-3xl font-semibold tracking-tight text-cream-dark leading-tight"
@@ -1495,11 +2345,6 @@
 					AI-powered summaries that help you understand topics more
 					deeply.
 				</p>
-				<span
-					class="text-xs text-neutral-400 font-semibold tracking-tight pt-2 border-t border-cream-200/60 w-fit"
-				>
-					Curated insights and visual explainers for complex subjects.
-				</span>
 			</div>
 
 			<!-- Preview Container Column (Right) -->
@@ -1560,11 +2405,11 @@
 						></div>
 					</div>
 
-					<!-- Foreground Screenshot Image (middle-aligned, bottom-clipped) -->
+					<!-- Foreground Screenshot Image (horizontally centered, width-constrained, clipped at bottom) -->
 					<img
 						src="/assets/img/ae28fdl60p.webp"
 						alt="Search preview"
-						class="absolute bottom-[-20px] left-1/2 -translate-x-1/2 h-[92%] w-auto object-contain z-20"
+						class="absolute top-[38%] md:top-[22%] left-1/2 -translate-x-1/2 w-[88%] md:w-[82%] h-auto object-contain z-20"
 					/>
 				</div>
 			</div>
@@ -1574,9 +2419,9 @@
 				class="md:col-span-5 flex flex-col space-y-4 order-1 md:order-2"
 			>
 				<span
-					class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest block"
+					class="text-[16px] font-semibold text-neutral-400 tracking-widest block"
 				>
-					06 / Search
+					(6)
 				</span>
 				<h3
 					class="font-sans text-2xl md:text-3xl font-semibold tracking-tight text-cream-dark leading-tight"
@@ -1589,11 +2434,170 @@
 					surfaces the most relevant materials from your curated
 					collection.
 				</p>
-				<span
-					class="text-xs text-neutral-400 font-semibold tracking-tight pt-2 border-t border-cream-200/60 w-fit"
+			</div>
+		</div>
+	</section>
+
+	<!-- Small Features Row -->
+	<section
+		id="downloads"
+		class="w-full max-w-5xl px-5 sm:px-6 md:px-0 mb-32 flex flex-col space-y-12"
+	>
+		<div class="flex flex-col items-start space-y-3.5 max-w-2xl">
+			<h2
+				class="font-sans text-2xl md:text-3xl font-semibold tracking-tight text-cream-dark leading-tight"
+			>
+				The details that make a difference.
+			</h2>
+		</div>
+
+		<div class="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10 w-full">
+			<!-- Column 1: Offline Reading -->
+			<div class="flex flex-col space-y-4 group">
+				<!-- Image Frame -->
+				<div
+					use:smoothCorners={{
+						corners: { radius: 24, smoothing: 0.8 },
+					}}
+					class="h-[200px] md:h-[240px] w-full overflow-hidden bg-cream-100/25 border-[3px] border-cream-300 rounded-3xl relative flex items-center justify-center select-none shadow-[0_8px_30px_rgba(0,0,0,0.015)]"
 				>
-					Fast semantic search across verified study materials.
-				</span>
+					<!-- Blurred Background Card -->
+					<div
+						class="absolute inset-0 transition-colors overflow-hidden"
+					>
+						<div
+							class="absolute inset-0 bg-cover bg-center"
+							style="background-image: url('/assets/img/9dbdc858-c6c6-492b-98f4-7ef5a1ca303e.webp');"
+						></div>
+						<div
+							class="absolute inset-0 bg-white/40 backdrop-blur-[10px]"
+						></div>
+					</div>
+					<!-- Foreground Screenshot Image (Clipped at bottom and right, zoomed) -->
+					<img
+						src="/assets/img/downloads.webp"
+						alt="Downloads preview"
+						class="absolute top-[25%] left-[20%] w-[160%] max-w-none h-auto object-contain z-20 rounded-tl-xl border-l-[2px] border-t-[2px] border-cream-200/50 shadow-md"
+					/>
+				</div>
+				<!-- Typography -->
+				<div class="flex flex-col space-y-2">
+					<span
+						class="text-[16px] font-semibold text-neutral-400 tracking-widest block"
+					>
+						(7)
+					</span>
+					<h3
+						class="font-sans text-lg md:text-xl font-semibold tracking-tight text-cream-dark leading-tight"
+					>
+						Offline Reading
+					</h3>
+					<p
+						class="font-sans text-sm leading-relaxed text-neutral-500"
+					>
+						Access downloaded notes, slides, and manuals directly
+						from your browser. Keep studying even when campus Wi-Fi
+						drops.
+					</p>
+				</div>
+			</div>
+
+			<!-- Column 2: Peer Sharing -->
+			<div class="flex flex-col space-y-4 group">
+				<!-- Image Frame -->
+				<div
+					use:smoothCorners={{
+						corners: { radius: 24, smoothing: 0.8 },
+					}}
+					class="h-[200px] md:h-[240px] w-full overflow-hidden bg-cream-100/25 border-[3px] border-cream-300 rounded-3xl relative flex items-center justify-center select-none shadow-[0_8px_30px_rgba(0,0,0,0.015)]"
+				>
+					<!-- Blurred Background Card -->
+					<div
+						class="absolute inset-0 transition-colors overflow-hidden"
+					>
+						<div
+							class="absolute inset-0 bg-cover bg-center"
+							style="background-image: url('/assets/img/85ce3b41-d668-4feb-abf3-24bb63fe35e0.webp');"
+						></div>
+						<div
+							class="absolute inset-0 bg-white/40 backdrop-blur-[10px]"
+						></div>
+					</div>
+					<!-- Foreground Screenshot Image (Centered, bottom aligned, zoomed) -->
+					<img
+						src="/assets/img/sharedcontext.webp"
+						alt="Sharing preview"
+						class="absolute bottom-[-15px] left-1/2 -translate-x-1/2 w-[85%] h-auto object-contain z-20 rounded-t-lg border-t border-x border-cream-200/50 shadow-md"
+					/>
+				</div>
+				<!-- Typography -->
+				<div class="flex flex-col space-y-2">
+					<span
+						class="text-[16px] font-semibold text-neutral-400 tracking-widest block"
+					>
+						(8)
+					</span>
+					<h3
+						class="font-sans text-lg md:text-xl font-semibold tracking-tight text-cream-dark leading-tight"
+					>
+						Direct Links
+					</h3>
+					<p
+						class="font-sans text-sm leading-relaxed text-neutral-500"
+					>
+						Instantly share custom bookmarks, notes, or folders with
+						your study group using clean, direct links.
+					</p>
+				</div>
+			</div>
+
+			<!-- Column 3: Personal Library -->
+			<div class="flex flex-col space-y-4 group">
+				<!-- Image Frame -->
+				<div
+					use:smoothCorners={{
+						corners: { radius: 24, smoothing: 0.8 },
+					}}
+					class="h-[200px] md:h-[240px] w-full overflow-hidden bg-cream-100/25 border-[3px] border-cream-300 rounded-3xl relative flex items-center justify-center select-none shadow-[0_8px_30px_rgba(0,0,0,0.015)]"
+				>
+					<!-- Blurred Background Card -->
+					<div
+						class="absolute inset-0 transition-colors overflow-hidden"
+					>
+						<div
+							class="absolute inset-0 bg-cover bg-center"
+							style="background-image: url('/assets/img/199cbe54-f67b-48ab-8b74-bbf9667cee13.webp');"
+						></div>
+						<div
+							class="absolute inset-0 bg-white/40 backdrop-blur-[10px]"
+						></div>
+					</div>
+					<!-- Foreground Screenshot Image (Clipped at bottom and right, zoomed) -->
+					<img
+						src="/assets/img/notebook.webp"
+						alt="Notebook preview"
+						class="absolute top-[25%] left-[20%] w-[160%] max-w-none h-auto object-contain z-20 rounded-tl-xl border-l-[2px] border-t-[2px] border-cream-200/50 shadow-md"
+					/>
+				</div>
+				<!-- Typography -->
+				<div class="flex flex-col space-y-2">
+					<span
+						class="text-[16px] font-semibold text-neutral-400 tracking-widest block"
+					>
+						(9)
+					</span>
+					<h3
+						class="font-sans text-lg md:text-xl font-semibold tracking-tight text-cream-dark leading-tight"
+					>
+						Curated Notebooks
+					</h3>
+					<p
+						class="font-sans text-sm leading-relaxed text-neutral-500"
+					>
+						Save, organize, and customize bookmarks into specialized
+						notebooks tailored for specific exams or subjects.
+					</p>
+				</div>
 			</div>
 		</div>
 	</section>
@@ -1601,7 +2605,7 @@
 	<!-- Connectors Section (3D Tilted Grid & Fallback State) -->
 	<section
 		id="connectors"
-		class="w-full max-w-5xl mb-32 flex flex-col items-center text-center space-y-4"
+		class="w-full max-w-5xl px-5 sm:px-6 md:px-0 mb-32 flex flex-col items-center text-center space-y-4"
 	>
 		<!-- Heading and Badge -->
 		<div class="flex flex-col items-center space-y-3.5 max-w-2xl">
@@ -1774,6 +2778,12 @@
 				>Docs</a
 			>
 			<a
+				href="/advertising"
+				class="text-[16px] font-semibold text-cream-dark hover:opacity-75 transition-opacity"
+			>
+				Advertising
+			</a>
+			<a
 				href="#faqs"
 				class="text-[16px] font-semibold text-cream-dark hover:opacity-75 transition-opacity"
 				>FAQs</a
@@ -1846,10 +2856,8 @@
 		class="flex flex-col sm:flex-row items-center justify-between py-6 border-t border-cream-200/40 text-neutral-400 text-xs gap-4 sm:gap-0 z-10"
 	>
 		<div>
-			© 2026 <span class="mx-1 text-neutral-300">|</span> Crafted with
-			<span class="heart-red inline-block align-middle pb-0.5"
-				><HugeiconsIcon icon={HeartIcon} size={13} /></span
-			> by Jinansh
+			© 2026 <span class="mx-1 text-neutral-300">|</span>Designed in
+			India
 		</div>
 		<div class="flex items-center space-x-2">
 			<!-- Status indicator dot -->
@@ -1905,79 +2913,128 @@
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div
 		transition:fade={{ duration: 250 }}
-		class="fixed inset-0 z-[100] bg-cream-50/95 backdrop-blur-xl overflow-y-auto flex flex-col"
+		class="fixed inset-0 z-[100] bg-cream-50/98 backdrop-blur-xl overflow-y-auto flex flex-col justify-between"
 	>
-		<!-- Header -->
-		<div class="flex items-center justify-between p-6 pt-8 pb-4">
-			<!-- Logo -->
-			<a
-				href="/"
-				class="flex items-center ml-1"
-				onclick={() => (mobileMenuOpen = false)}
-			>
-				<img
-					src="/assets/img/materio_new_bk.svg"
-					alt="materio"
-					class="h-7 w-auto"
-				/>
-			</a>
-			<!-- Close Button -->
-			<button
-				onclick={() => (mobileMenuOpen = false)}
-				class="p-2 -mr-2 text-neutral-800 transition-opacity hover:opacity-70"
-			>
-				<HugeiconsIcon icon={Cancel01Icon} size={24} />
-			</button>
+		<div>
+			<!-- Header -->
+			<div class="flex items-center justify-between p-6 pt-8 pb-4">
+				<!-- Logo -->
+				<a
+					href="/"
+					class="flex items-center ml-1"
+					onclick={() => (mobileMenuOpen = false)}
+				>
+					<img
+						src="/assets/img/materio_new_bk.svg"
+						alt="materio"
+						class="h-7 w-auto"
+					/>
+				</a>
+				<!-- Close Button -->
+				<button
+					onclick={() => (mobileMenuOpen = false)}
+					class="p-2 -mr-2 text-neutral-800 transition-opacity hover:opacity-70"
+				>
+					<HugeiconsIcon icon={Cancel01Icon} size={24} />
+				</button>
+			</div>
+
+			<!-- Links -->
+			<div class="flex flex-col mt-4">
+				<a
+					href="#features"
+					onclick={() => (mobileMenuOpen = false)}
+					in:blurSlide={{ delay: 100 }}
+					out:fade={{ duration: 150 }}
+					class="py-5 px-7 border-t border-cream-200/60 font-exposure text-[26px] tracking-tight text-neutral-900 hover:bg-cream-100/50 transition-colors"
+				>
+					Features
+				</a>
+				<a
+					href="/connectors"
+					target="_blank"
+					onclick={() => (mobileMenuOpen = false)}
+					in:blurSlide={{ delay: 150 }}
+					out:fade={{ duration: 150 }}
+					class="py-5 px-7 border-t border-cream-200/60 font-exposure text-[26px] tracking-tight text-neutral-900 hover:bg-cream-100/50 transition-colors"
+				>
+					Connectors
+				</a>
+				<a
+					href="#faqs"
+					onclick={() => (mobileMenuOpen = false)}
+					in:blurSlide={{ delay: 200 }}
+					out:fade={{ duration: 150 }}
+					class="py-5 px-7 border-t border-cream-200/60 font-exposure text-[26px] tracking-tight text-neutral-900 hover:bg-cream-100/50 transition-colors"
+				>
+					FAQ
+				</a>
+				<a
+					href="#downloads"
+					onclick={() => (mobileMenuOpen = false)}
+					in:blurSlide={{ delay: 250 }}
+					out:fade={{ duration: 150 }}
+					class="py-5 px-7 border-t border-cream-200/60 font-exposure text-[26px] tracking-tight text-neutral-900 hover:bg-cream-100/50 transition-colors"
+				>
+					Downloads
+				</a>
+
+				{#if !loading && user}
+					<button
+						onclick={() => {
+							mobileMenuOpen = false;
+							handleLogout();
+						}}
+						in:blurSlide={{ delay: 300 }}
+						out:fade={{ duration: 150 }}
+						class="w-full text-left py-5 px-7 border-y border-cream-200/60 font-exposure text-[26px] tracking-tight text-neutral-900 hover:bg-cream-100/50 transition-colors focus:outline-none"
+					>
+						Log Out
+					</button>
+				{:else}
+					<button
+						onclick={() => {
+							mobileMenuOpen = false;
+							handleLoginRedirect();
+						}}
+						in:blurSlide={{ delay: 300 }}
+						out:fade={{ duration: 150 }}
+						class="w-full text-left py-5 px-7 border-y border-cream-200/60 font-exposure text-[26px] tracking-tight text-neutral-900 hover:bg-cream-100/50 transition-colors focus:outline-none"
+					>
+						Log in
+					</button>
+				{/if}
+			</div>
 		</div>
 
-		<!-- Links -->
-		<div class="flex flex-col mt-4">
-			<a
-				href="#features"
-				onclick={() => (mobileMenuOpen = false)}
-				in:blurSlide={{ delay: 100 }}
-				out:fade={{ duration: 150 }}
-				class="py-6 px-7 border-t border-cream-200/50 font-sans text-[22px] tracking-tight text-neutral-900 hover:bg-cream-100/50 transition-colors"
-			>
-				Features
-			</a>
-			<a
-				href="#connectors"
-				onclick={() => (mobileMenuOpen = false)}
-				in:blurSlide={{ delay: 150 }}
-				out:fade={{ duration: 150 }}
-				class="py-6 px-7 border-t border-cream-200/50 font-sans text-[22px] tracking-tight text-neutral-900 hover:bg-cream-100/50 transition-colors"
-			>
-				Connectors
-			</a>
-			<a
-				href="#resources"
-				onclick={() => (mobileMenuOpen = false)}
-				in:blurSlide={{ delay: 200 }}
-				out:fade={{ duration: 150 }}
-				class="py-6 px-7 border-t border-cream-200/50 font-sans text-[22px] tracking-tight text-neutral-900 hover:bg-cream-100/50 transition-colors"
-			>
-				Resources
-			</a>
-			<a
-				href="#pricing"
-				onclick={() => (mobileMenuOpen = false)}
-				in:blurSlide={{ delay: 250 }}
-				out:fade={{ duration: 150 }}
-				class="py-6 px-7 border-t border-cream-200/50 font-sans text-[22px] tracking-tight text-neutral-900 hover:bg-cream-100/50 transition-colors"
-			>
-				Pricing
-			</a>
-			<a
-				href="https://getmaterio.app"
-				target="_blank"
-				onclick={() => (mobileMenuOpen = false)}
-				in:blurSlide={{ delay: 300 }}
-				out:fade={{ duration: 150 }}
-				class="py-6 px-7 border-y border-cream-200/50 font-sans text-[22px] tracking-tight text-neutral-900 hover:bg-cream-100/50 transition-colors"
-			>
-				Try Now
-			</a>
+		<!-- Bottom CTA Button -->
+		<div class="p-6 pb-10 mt-auto w-full flex flex-col">
+			{#if !loading && user}
+				<a
+					href="https://getmaterio.app"
+					target="_blank"
+					onclick={() => (mobileMenuOpen = false)}
+					use:smoothCorners={{
+						corners: { radius: 18, smoothing: 0.8 },
+					}}
+					class="w-full py-4 text-center text-[17px] font-semibold tracking-wide text-white transition-all active:scale-[0.98] focus:outline-none bg-gradient-to-t from-[#161616] via-[#242424] to-[#363636] border border-white/25 shadow-lg"
+				>
+					Go to App
+				</a>
+			{:else}
+				<button
+					onclick={() => {
+						mobileMenuOpen = false;
+						handleSignupRedirect();
+					}}
+					use:smoothCorners={{
+						corners: { radius: 18, smoothing: 0.8 },
+					}}
+					class="w-full py-4 text-center text-[17px] font-semibold tracking-wide text-white transition-all active:scale-[0.98] focus:outline-none bg-gradient-to-t from-[#161616] via-[#242424] to-[#363636] border border-white/25 shadow-lg"
+				>
+					Get Started
+				</button>
+			{/if}
 		</div>
 	</div>
 {/if}
@@ -2025,5 +3082,48 @@
 	.logo-card:hover {
 		transform: translateY(-6px) translateZ(4px);
 		filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.16));
+	}
+
+	/* Premium Squircle CTA Buttons styling (with color transition only on hover) */
+	.btn-dark-hero {
+		background: linear-gradient(180deg, #3a3a3a 0%, #202020 100%);
+		border: 1px solid #181818;
+		box-shadow:
+			0 4px 12px rgba(0, 0, 0, 0.1),
+			inset 0 1px 0 rgba(255, 255, 255, 0.1);
+		transition:
+			background 0.25s ease,
+			box-shadow 0.25s ease;
+	}
+	.btn-dark-hero:hover {
+		background: linear-gradient(180deg, #4c4c4c 0%, #303030 100%);
+	}
+
+	.btn-light-hero {
+		background: linear-gradient(180deg, #ffffff 0%, #e8e8e8 100%);
+		border: 1px solid #cfcfcf;
+		box-shadow:
+			0 4px 12px rgba(0, 0, 0, 0.04),
+			inset 0 1px 0 rgba(255, 255, 255, 0.8);
+		transition:
+			background 0.25s ease,
+			box-shadow 0.25s ease;
+	}
+	.btn-light-hero:hover {
+		background: linear-gradient(180deg, #ffffff 0%, #f5f5f5 100%);
+	}
+
+	.btn-dark-header {
+		background: linear-gradient(180deg, #3a3a3a 0%, #202020 100%);
+		border: 1px solid #181818;
+		box-shadow:
+			0 2px 4px rgba(0, 0, 0, 0.1),
+			inset 0 1px 0 rgba(255, 255, 255, 0.1);
+		transition:
+			background 0.25s ease,
+			box-shadow 0.25s ease;
+	}
+	.btn-dark-header:hover {
+		background: linear-gradient(180deg, #4c4c4c 0%, #303030 100%);
 	}
 </style>

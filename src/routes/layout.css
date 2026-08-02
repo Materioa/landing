@@ -16,9 +16,45 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'OpenRunde';
+  src: url('/OpenRunde-Regular.woff2') format('woff2'),
+       url('/OpenRunde-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'OpenRunde';
+  src: url('/OpenRunde-Medium.woff2') format('woff2'),
+       url('/OpenRunde-Medium.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'OpenRunde';
+  src: url('/OpenRunde-Semibold.woff2') format('woff2'),
+       url('/OpenRunde-Semibold.woff') format('woff');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'OpenRunde';
+  src: url('/OpenRunde-Bold.woff2') format('woff2'),
+       url('/OpenRunde-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
-  --font-sans: 'Materio Display Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-display: 'Materio Display Sans', sans-serif;
+  --font-sans: 'OpenRunde', 'Materio Display Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: 'OpenRunde', 'Materio Display Sans', sans-serif;
   
   --color-cream-50: oklch(0.9885 0.0057 84.6);
   --color-cream-100: oklch(0.9765 0.0098 87.5);
@@ -56,6 +92,6 @@ body {
   font-display: swap;
 }
 
-h1, h2, h3, h4 {
+h1, h2, h3, h4, .font-exposure {
   font-family: 'Exposure', 'Materio Display Sans', sans-serif !important;
 }
